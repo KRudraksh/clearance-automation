@@ -1,0 +1,69 @@
+name: Deploy to Azure Web App
+
+on:
+  push:
+    branches:
+      - main  # or master, depending on your default branch
+  workflow_dispatch:  # Allows manual trigger
+
+env:
+  NODE_VERSION: '16.x'
+  AZURE_WEBAPP_NAME: ${{ secrets.AZURE_WEBAPP_NAME }}
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Create .env file
+      run: |
+        echo "MONGODB_URI=${{ secrets.MONGODB_URI }}" >> .env
+        echo "SESSION_SECRET=${{ secrets.SESSION_SECRET }}" >> .env
+        echo "GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}" >> .env
+        echo "GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}" >> .env
+        echo "REDIRECT_URL=https://${{ secrets.AZURE_WEBAPP_NAME }}.azurewebsites.net/auth/gmail/callback" >> .env
+        echo "AZURE_STORAGE_CONNECTION_STRING=${{ secrets.AZURE_STORAGE_CONNECTION_STRING }}" >> .env
+        echo "PORT=8080" >> .env
+
+    - name: Zip artifact for deployment
+      run: zip -r release.zip . -x "*.git*" "node_modules/*"
+
+    - name: Login to Azure
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    - name: Deploy to Azure Web App
+      uses: azure/webapps-deploy@v2
+      with:
+        app-name: ${{ secrets.AZURE_WEBAPP_NAME }}
+        publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+        package: release.zip
+
+    - name: Install production dependencies
+      uses: azure/webapps-deploy@v2
+      with:
+        app-name: ${{ secrets.AZURE_WEBAPP_NAME }}
+        publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+        startup-command: 'npm ci --only=production'
+
+    - name: Clean up deployment
+      if: always()
+      run: rm release.zip
+
+    - name: Azure logout
+      run: |
+        az logout
+        az cache purge
+        az account clear
