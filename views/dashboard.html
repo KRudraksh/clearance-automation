@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Clearance Automation - Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background-color: #f8f9fa;
+            padding: 15px 20px;
+            border-bottom: 1px solid #dee2e6;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .user-picture {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+        }
+
+        .main-container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .sidebar {
+            width: 300px;
+            background-color: #f8f9fa;
+            border-right: 1px solid #dee2e6;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background-color: #fff;
+        }
+
+        .job-list-item {
+            padding: 15px;
+            border: 1px solid #dee2e6;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .job-list-item:hover {
+            background-color: #e9ecef;
+        }
+
+        .job-list-item.active {
+            background-color: #e9ecef;
+            border-color: #0d6efd;
+        }
+
+        .create-job-btn {
+            background-color: #0d6efd;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-bottom: 20px;
+            width: 100%;
+            font-size: 16px;
+        }
+
+        .create-job-btn:hover {
+            background-color: #0b5ed7;
+        }
+
+        .delete-btn {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            float: right;
+        }
+
+        .delete-btn:hover {
+            background-color: #bb2d3b;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            border-radius: 5px;
+            width: 80%;
+            max-width: 500px;
+        }
+
+        .close-btn {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close-btn:hover {
+            color: black;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        .job-details-card {
+            background: white;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .document-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .document-item {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .document-status {
+            margin-right: 10px;
+            font-size: 20px;
+        }
+
+        .status-legend {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            margin: 5px 0;
+        }
+        
+        .document-open-btn {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+
+        .refresh-btn {
+            background-color: #17a2b8;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .refresh-icon {
+            display: inline-block;
+        }
+
+        .refresh-icon.spinning {
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            100% { transform: rotate(360deg); }
+        }
+
+        .header-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .invoice-details {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #dee2e6;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Clearance Automation</h1>
+        <div class="user-info">
+            <img id="userPicture" class="user-picture" alt="User Profile">
+            <div>
+                <p id="userName" style="margin: 0;"></p>
+                <p id="userEmail" style="margin: 0; color: #666;"></p>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-container">
+        <div class="sidebar">
+            <button id="createJobBtn" class="create-job-btn">Create New Job</button>
+            <h2>EXISTING JOBS</h2>
+            <div id="jobList"></div>
+        </div>
+
+        <div class="main-content" id="jobDetailsContent">
+            Select a job to view details
+        </div>
+    </div>
+
+    <!-- Create Job Modal -->
+    <div id="createJobModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <h2>Create New Job</h2>
+            <form id="createJobForm">
+                <div class="form-group">
+                    <label for="awbNumber">AWB No.:</label>
+                    <input type="text" id="awbNumber" required>
+                </div>
+                <div class="form-group">
+                    <label for="goodsDescription">Goods Description:</label>
+                    <input type="text" id="goodsDescription" required>
+                </div>
+                <div class="form-group">
+                    <label for="importerEmail">Importer Email:</label>
+                    <input type="email" id="importerEmail" required>
+                </div>
+                <button type="submit" class="create-job-btn">Save</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Fetch user info
+        fetch('/user')
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('userName').textContent = data.name;
+                document.getElementById('userEmail').textContent = data.email;
+                document.getElementById('userPicture').src = data.picture;
+            })
+            .catch(() => {
+                window.location.href = '/';
+            });
+
+        // Fetch and display jobs
+        function fetchJobs() {
+            fetch('/jobs')
+                .then(response => response.json())
+                .then(jobs => {
+                    const jobList = document.getElementById('jobList');
+                    jobList.innerHTML = '';
+                    jobs.forEach(job => {
+                        const jobItem = document.createElement('div');
+                        jobItem.classList.add('job-list-item');
+                        jobItem.setAttribute('data-job-id', job._id);
+                        jobItem.textContent = `AWB: ${job.awbNumber}`;
+                        jobItem.onclick = () => {
+                            document.querySelectorAll('.job-list-item').forEach(item => {
+                                item.classList.remove('active');
+                            });
+                            jobItem.classList.add('active');
+                            showJobDetails(job._id);
+                        };
+                        jobList.appendChild(jobItem);
+                    });
+                });
+        }
+
+        // Show job details
+        function showJobDetails(jobId) {
+            fetch(`/job/${jobId}`)
+                .then(response => response.json())
+                .then(job => {
+                    const detailsContent = document.getElementById('jobDetailsContent');
+                    
+                    // Create the document status display
+                    const documentsList = job.documentsRequested.map(doc => {
+                        const isReceived = job.documentsReceived.includes(doc);
+                        const icon = isReceived ? '✅' : '❌';
+                        const openButton = isReceived ? 
+                            `<button onclick="openDocument('${job._id}', '${doc}')" class="document-open-btn">Open</button>` : '';
+                        return `
+                            <li class="document-item">
+                                <span class="document-status">${icon}</span>
+                                <span>${doc}</span>
+                                ${openButton}
+                            </li>`;
+                    }).join('');
+
+                    // Invoice details display
+                    const invoiceDetails = job.invoiceDetails ? `
+                        <div class="invoice-details">
+                            <h4>Invoice Details</h4>
+                            <p><strong>Invoice Number:</strong> ${job.invoiceDetails.invoiceNumber || 'N/A'}</p>
+                            <p><strong>Date:</strong> ${job.invoiceDetails.date || 'N/A'}</p>
+                            <p><strong>Company Name:</strong> ${job.invoiceDetails.companyName || 'N/A'}</p>
+                        </div>
+                    ` : '';
+
+                    // Add refresh button and email monitoring status
+                    const headerContent = `
+                        <div class="header-actions">
+                            <button onclick="refreshEmails()" class="refresh-btn">
+                                <span class="refresh-icon">🔄</span> Refresh Emails
+                            </button>
+                            <button onclick="deleteJob('${job._id}')" class="delete-btn">Delete Job</button>
+                        </div>
+                    `;
+
+                    detailsContent.innerHTML = `
+                        ${headerContent}
+                        <div class="job-details-card">
+                            <p><strong>AWB No.:</strong> ${job.awbNumber}</p>
+                            <p><strong>Goods Description:</strong> ${job.goodsDescription}</p>
+                            <p><strong>Importer Email:</strong> ${job.importerEmail}</p>
+                            ${invoiceDetails}
+                        </div>
+                        
+                        <div class="job-details-card">
+                            <h3>Required Documents Status</h3>
+                            <ul class="document-list">
+                                ${documentsList}
+                            </ul>
+                        </div>
+                    `;
+                });
+        }
+
+        
+        function openDocument(jobId, docType) {
+            window.open(`/jobs/${jobId}/document/${docType}`, '_blank');
+        }
+
+        function refreshEmails() {
+            const refreshBtn = document.querySelector('.refresh-btn');
+            refreshBtn.disabled = true;
+            refreshBtn.innerHTML = '<span class="refresh-icon spinning">🔄</span> Refreshing...';
+
+            fetch('/refresh-emails', {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Refresh response:', data);
+                
+                // If we have the current job ID, refresh its details
+                const activeJob = document.querySelector('.job-list-item.active');
+                if (activeJob) {
+                    const jobId = activeJob.getAttribute('data-job-id');
+                    if (jobId) {
+                        showJobDetails(jobId);
+                    }
+                }
+
+                // Refresh job list
+                fetchJobs();
+                
+                refreshBtn.disabled = false;
+                refreshBtn.innerHTML = '<span class="refresh-icon">🔄</span> Refresh Emails';
+            })
+            .catch(error => {
+                console.error('Error refreshing emails:', error);
+                alert('Error refreshing emails. Please try again.');
+                refreshBtn.disabled = false;
+                refreshBtn.innerHTML = '<span class="refresh-icon">🔄</span> Refresh Emails';
+            });
+}
+
+        // Delete job
+        function deleteJob(jobId) {
+            if (confirm('Are you sure you want to delete this job? This action cannot be undone.')) {
+                fetch(`/jobs/${jobId}`, {
+                    method: 'DELETE'
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Failed to delete job');
+                    }
+                    // Clear job details
+                    document.getElementById('jobDetailsContent').innerHTML = 'Select a job to view details';
+                    // Refresh job list
+                    fetchJobs();
+                })
+                .catch(error => {
+                    alert('Error deleting job: ' + error.message);
+                });
+            }
+        }
+
+        // Modal functionality
+        const createJobModal = document.getElementById('createJobModal');
+        const createJobBtn = document.getElementById('createJobBtn');
+        const closeBtn = document.querySelector('.close-btn');
+
+        createJobBtn.onclick = () => {
+            createJobModal.style.display = 'block';
+        };
+
+        closeBtn.onclick = () => {
+            createJobModal.style.display = 'none';
+        };
+
+        window.onclick = (event) => {
+            if (event.target == createJobModal) {
+                createJobModal.style.display = 'none';
+            }
+        };
+
+        // Create Job Form Submission
+        document.getElementById('createJobForm').onsubmit = (e) => {
+            e.preventDefault();
+            const jobData = {
+                awbNumber: document.getElementById('awbNumber').value,
+                goodsDescription: document.getElementById('goodsDescription').value,
+                importerEmail: document.getElementById('importerEmail').value
+            };
+
+            fetch('/jobs', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(jobData)
+            })
+            .then(response => response.json())
+            .then(newJob => {
+                createJobModal.style.display = 'none';
+                document.getElementById('createJobForm').reset();
+                fetchJobs();
+            })
+            .catch(error => {
+                console.error('Error creating job:', error);
+                alert('Error creating job. Please try again.');
+            });
+        };
+
+        // Initial job fetch
+        fetchJobs();
+    </script>
+</body>
+</html>
