@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Clearance Automation</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.min.js"></script>
+    <script>
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.worker.min.js';
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    <script src="services/azure-service.js"></script>
+    <script src="dashboard.js"></script>
+</head>
+<body>
+    <div class="dashboard">
+        <header>
+            <h1>Clearance Automation</h1>
+            <div class="user-section">
+                <div class="user-greeting" id="userGreeting">Hello, <span id="username"></span></div>
+                <button class="btn logout-btn" id="logoutBtn">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </button>
+                <button class="btn config-email-btn" id="configEmailBtn">
+                    <i class="fas fa-envelope"></i> Configure Email
+                </button>
+            </div>
+        </header>
+        <div class="dashboard-content">
+            <div class="sidebar">
+                <button class="btn new-shipment-btn" id="newShipmentBtn">New Shipment</button>
+                <button class="btn check-email-btn" id="checkEmailBtn">
+                    <i class="fas fa-envelope-open-text"></i> Check for Emails
+                </button>
+                <div class="shipments-list" id="shipmentsList">
+                    <!-- Shipments will be listed here -->
+                </div>
+            </div>
+            <div class="main-content">
+                <div id="shipmentDetails" class="shipment-details hidden">
+                    <h2>Shipment Details</h2>
+                    <div class="job-number-display">
+                        <div class="job-info">
+                            <div><strong>Job Number:</strong> <span id="detailsJobNumber"></span></div>
+                            <div><strong>Created On:</strong> <span id="detailsCreatedDate"></span></div>
+                            <div class="sender-info" id="senderInfo"></div>
+                        </div>
+                    </div>
+                    <div class="section-progress">
+                        <div class="progress-item" id="generalProgress">
+                            <span class="progress-label">General</span>
+                            <div class="progress-indicator"></div>
+                        </div>
+                        <div class="progress-item" id="invoiceProgress">
+                            <span class="progress-label">Invoice</span>
+                            <div class="progress-indicator"></div>
+                        </div>
+                        <div class="progress-item" id="insuranceProgress">
+                            <span class="progress-label">Insurance</span>
+                            <div class="progress-indicator"></div>
+                        </div>
+                        <div class="progress-item" id="packingProgress">
+                            <span class="progress-label">Packing List</span>
+                            <div class="progress-indicator"></div>
+                        </div>
+                    </div>
+                    <div class="files-section">
+                        <div class="files-header">
+                            <h3>Files</h3>
+                            <button class="btn" id="addFilesBtn">Add Files</button>
+                            <input type="file" id="additionalFiles" multiple accept="image/*,.pdf" style="display: none;">
+                        </div>
+                        <div id="shipmentFiles" class="files-list">
+                            <!-- Files will be listed here -->
+                        </div>
+                        <div class="auto-fill-container">
+                            <button class="btn auto-fill-btn" id="autoFillBtn">
+                                <i class="fas fa-magic"></i> Auto Fill
+                            </button>
+                            <div class="progress-container" id="progressContainer" style="display: none;">
+                                <div class="progress-bar">
+                                    <div class="progress" id="progressBar"></div>
+                                </div>
+                                <div class="progress-status" id="progressStatus">Processing...</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="details-sections">
+                        <!-- GENERAL Section -->
+                        <section class="detail-section">
+                            <h3>GENERAL</h3>
+                            
+                            <!-- General Subsection -->
+                            <div class="subsection">
+                                <h4>General</h4>
+                                <div class="form-grid">
+                                    <div class="form-group">
+                                        <label>AWB No.</label>
+                                        <input type="text" id="awbNo">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Date Created</label>
+                                        <input type="date" id="dateCreated">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Customs House Code</label>
+                                        <input type="text" id="customsHouseCode">
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Exporter Details Subsection -->
+                            <div class="subsection">
+                                <h4>Exporter Details</h4>
+                                <div class="form-grid">
+                                    <div class="form-group">
+                                        <label>Exporter Name</label>
+                                        <input type="text" id="exporterName">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Exporter Address</label>
+                                        <textarea id="exporterAddress"></textarea>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>IEC Code</label>
+                                        <input type="text" id="iecCode">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>AD Code</label>
+                                        <input type="text" id="adCode">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>GST No.</label>
+                                        <input type="text" id="gstNo">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>PAN Number</label>
+                                        <input type="text" id="panNumber">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Exporter Country</label>
+                                        <input type="text" id="exporterCountry">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Sales Contract Number</label>
+                                        <input type="text" id="salesContractNumber">
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Consignee Details Subsection -->
+                            <div class="subsection">
+                                <h4>Consignee Details</h4>
+                                <div class="form-grid">
+                                    <div class="form-group">
+                                        <label>Consignee Name</label>
+                                        <input type="text" id="consigneeName">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Consignee Address</label>
+                                        <textarea id="consigneeAddress"></textarea>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Consignee Country</label>
+                                        <input type="text" id="consigneeCountry">
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Port Details Subsection -->
+                            <div class="subsection">
+                                <h4>Port Details</h4>
+                                <div class="form-grid">
+                                    <div class="form-group">
+                                        <label>Port of Landing</label>
+                                        <input type="text" id="portOfLanding">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Port of Discharge</label>
+                                        <input type="text" id="portOfDischarge">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Country of Discharge</label>
+                                        <input type="text" id="countryOfDischarge">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Port of Destination</label>
+                                        <input type="text" id="portOfDestination">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Country of Destination</label>
+                                        <input type="text" id="countryOfDestination">
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+                        
+                        <!-- INVOICE Section -->
+                        <section class="detail-section">
+                            <h3>INVOICE</h3>
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label>Invoice No.</label>
+                                    <input type="text" id="invoiceNo">
+                                </div>
+                                <div class="form-group">
+                                    <label>Invoice Date</label>
+                                    <input type="date" id="invoiceDate">
+                                </div>
+                                <div class="form-group">
+                                    <label>Terms of Payment</label>
+                                    <input type="text" id="termsOfPayment">
+                                </div>
+                            </div>
+                            
+                            <!-- Goods Table -->
+                            <div class="goods-table-container">
+                                <h4>Goods Details</h4>
+                                <table id="goodsTable">
+                                    <thead>
+                                        <tr>
+                                            <th>Goods Name</th>
+                                            <th>HS Code</th>
+                                            <th>Quantity Net Weight (MT)</th>
+                                            <th>Unit Price (USD)</th>
+                                            <th>Amount (USD)</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="goodsTableBody">
+                                    </tbody>
+                                </table>
+                                <button type="button" class="btn" id="addGoodsRow">Add Item</button>
+                            </div>
+                            
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label>Advance (USD)</label>
+                                    <input type="number" id="advance" step="0.01">
+                                </div>
+                                <div class="form-group">
+                                    <label>Grand Total (USD)</label>
+                                    <input type="number" id="grandTotal" step="0.01" readonly>
+                                </div>
+                                <div class="form-group">
+                                    <label>FOB Value (USD)</label>
+                                    <input type="number" id="fobValue" step="0.01">
+                                </div>
+                                <div class="form-group">
+                                    <label>Total Freight (USD)</label>
+                                    <input type="number" id="totalFreight" step="0.01">
+                                </div>
+                            </div>
+                        </section>
+                        
+                        <!-- INSURANCE Section -->
+                        <section class="detail-section">
+                            <h3>INSURANCE</h3>
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label>Company of Insurance</label>
+                                    <input type="text" id="insuranceCompany">
+                                </div>
+                                <div class="form-group">
+                                    <label>Total Sum Insured (USD)</label>
+                                    <input type="number" id="totalSumInsured" step="0.01">
+                                </div>
+                                <div class="form-group">
+                                    <label>Policy Number</label>
+                                    <input type="text" id="policyNumber">
+                                </div>
+                                <div class="form-group">
+                                    <label>Certificate Number</label>
+                                    <input type="text" id="certificateNumber">
+                                </div>
+                                <div class="form-group">
+                                    <label>Policy Conditions</label>
+                                    <textarea id="policyConditions"></textarea>
+                                </div>
+                            </div>
+                        </section>
+                        
+                        <!-- PACKING LIST Section -->
+                        <section class="detail-section">
+                            <h3>PACKING LIST</h3>
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label>Container Number</label>
+                                    <input type="text" id="containerNumber">
+                                </div>
+                                <div class="form-group">
+                                    <label>Seal Number</label>
+                                    <input type="text" id="sealNumber">
+                                </div>
+                                <div class="form-group">
+                                    <label>Packages/Bundles</label>
+                                    <input type="number" id="packagesBundles">
+                                </div>
+                                <div class="form-group">
+                                    <label>Gross Weight (MT)</label>
+                                    <input type="number" id="grossWeight" step="0.001">
+                                </div>
+                                <div class="form-group">
+                                    <label>Net Weight (MT)</label>
+                                    <input type="number" id="netWeight" step="0.001">
+                                </div>
+                            </div>
+                        </section>
+                    </div>
+                    
+                    <div class="danger-zone">
+                        <button class="btn save-btn" id="saveShipmentBtn">Save</button>
+                        <button class="btn submit-btn" id="submitBtn">Submit</button>
+                        <button class="btn delete-btn" id="deleteShipmentBtn">Delete Shipment</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- New Shipment Modal -->
+    <div id="shipmentModal" class="modal">
+        <div class="modal-content">
+            <h2>New Shipment</h2>
+            <form id="shipmentForm">
+                <div class="file-upload-container">
+                    <p class="upload-note">Documents (Optional)</p>
+                    <button type="button" class="btn file-upload-btn" id="fileUploadBtn">
+                        Choose Files
+                    </button>
+                    <input type="file" id="fileUpload" multiple style="display: none;">
+                    <div id="fileList" class="file-list"></div>
+                </div>
+                <div class="button-group">
+                    <button type="submit" class="btn">Create Shipment</button>
+                    <button type="button" class="btn cancel" id="cancelShipment">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="notification" class="notification"></div>
+</body>
+</html> 

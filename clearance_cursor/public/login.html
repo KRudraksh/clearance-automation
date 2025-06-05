@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Clearance Automation</title>
+    <link href="https://fonts.googleapis.com/css2?family=Gudea:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-image">
+            <img src="/images/login_1.png" alt="Login Image">
+        </div>
+        <div class="container">
+            <div class="login-box">
+                <h1 class="main-title meridian-title">Meridian AI</h1>
+                <h2>Clearance Portal</h2>
+                <form id="loginForm">
+                    <div class="input-group">
+                        <input type="text" id="username" required>
+                        <label>Username</label>
+                    </div>
+                    <div class="input-group">
+                        <input type="password" id="password" required>
+                        <label>Password</label>
+                    </div>
+                    <button type="submit" class="btn">Sign In</button>
+                    <div class="links">
+                        <a href="#" id="forgotPassword">Forgot Password?</a>
+                        <a href="#" id="newUser">New User</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Registration Modal -->
+    <div id="registrationModal" class="modal">
+        <div class="modal-content">
+            <h2>New User Registration</h2>
+            <form id="registrationForm">
+                <div class="input-group">
+                    <input type="text" id="regName" required>
+                    <label>Name</label>
+                </div>
+                <div class="input-group">
+                    <input type="email" id="regEmail" required>
+                    <label>Email</label>
+                </div>
+                <div class="input-group">
+                    <input type="text" id="regUsername" required>
+                    <label>Username</label>
+                </div>
+                <div class="input-group">
+                    <input type="password" id="regPassword" required>
+                    <label>Password</label>
+                </div>
+                <div class="input-group">
+                    <input type="password" id="regConfirmPassword" required>
+                    <label>Confirm Password</label>
+                </div>
+                <div class="button-group">
+                    <button type="submit" class="btn">Save</button>
+                    <button type="button" class="btn cancel" id="cancelRegistration">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Notification -->
+    <div id="notification" class="notification"></div>
+
+    <script src="script.js"></script>
+</body>
+</html> 

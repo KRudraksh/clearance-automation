@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login - Clearance Automation</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="login-box">
+            <h1 class="main-title">Admin Portal</h1>
+            <h2>Login</h2>
+            <form id="adminLoginForm">
+                <div class="input-group">
+                    <input type="text" id="username" required>
+                    <label>Username</label>
+                </div>
+                <div class="input-group">
+                    <input type="password" id="password" required>
+                    <label>Password</label>
+                </div>
+                <button type="submit" class="btn">Sign In</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="notification" class="notification"></div>
+
+    <script>
+        document.getElementById('adminLoginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            try {
+                const response = await fetch('/api/admin/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username, password })
+                });
+
+                if (response.ok) {
+                    // Store credentials for subsequent requests
+                    localStorage.setItem('adminCredentials', btoa(`${username}:${password}`));
+                    window.location.href = '/admin.html';
+                } else {
+                    throw new Error('Invalid credentials');
+                }
+            } catch (error) {
+                const notification = document.getElementById('notification');
+                notification.textContent = error.message;
+                notification.className = 'notification error';
+                notification.style.display = 'block';
+                
+                setTimeout(() => {
+                    notification.style.display = 'none';
+                }, 3000);
+            }
+        });
+    </script>
+</body>
+</html> 

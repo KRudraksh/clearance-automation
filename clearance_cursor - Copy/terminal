@@ -1,0 +1,5 @@
+mkdir clearance-automation
+cd clearance-automation
+npm init -y
+npm install express bcrypt body-parser sqlite3 mongoose
+npm install mongoose

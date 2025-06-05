@@ -1,0 +1,7 @@
+config.js
+node_modules/
+uploads/*
+!uploads/.gitkeep
+temp/*
+!temp/.gitkeep
+*.db 
